@@ -1,9 +1,11 @@
 name: 10-Minute Website Visitor
 
 on:
+  repository_dispatch:
+    types: [external_ping]   # Listens for cron-job.org pings
   schedule:
-    - cron: '*/10 * * * *'  # Triggers every 10 minutes
-  workflow_dispatch:        # Allows manual triggering
+    - cron: '*/10 * * * *'    # Backup GitHub internal scheduler
+  workflow_dispatch:         # Allows manual execution
 
 jobs:
   visit_website:
