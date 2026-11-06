@@ -2,7 +2,7 @@ name: 10-Minute Website Visitor
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Triggers every 10 minutes
+    - cron: '*/15 * * * *'  # Triggers every 15 minutes
   workflow_dispatch:        # Allows manual triggering
 
 jobs:
