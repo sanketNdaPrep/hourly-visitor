@@ -10,7 +10,7 @@ HEADLESS = True
 
 logging.basicConfig(format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
 
-# Diverse Browser Fingerprints for Vercel Telemetry
+# Diverse Browser Signatures
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
@@ -35,6 +35,10 @@ def visit_and_stay():
     selected_vp = random.choice(VIEWPORTS)
     selected_locale = random.choice(LOCALES)
 
+    # Cache-busting URL: append dynamic timestamp to force fresh Vercel CDN request
+    timestamp = int(time.time())
+    cache_busting_url = f"{TARGET_URL.rstrip('/')}/?v={timestamp}"
+
     logging.info(f"Launching browser ({selected_vp['width']}x{selected_vp['height']})...")
 
     with sync_playwright() as p:
@@ -53,21 +57,21 @@ def visit_and_stay():
 
         start_time = time.time()
         try:
-            logging.info(f"Navigating to {TARGET_URL}...")
-            page.goto(TARGET_URL, timeout=60000, wait_until="domcontentloaded")
-            time.sleep(2)
+            logging.info(f"Navigating to {cache_busting_url}...")
+            page.goto(cache_busting_url, timeout=60000, wait_until="domcontentloaded")
+            time.sleep(3)
             page.evaluate("window.scrollBy(0, 400)")
-            logging.info("Successfully rendered page and triggered scroll interaction.")
+            logging.info("Successfully loaded page and triggered user scroll.")
         except Exception as e:
-            logging.error(f"Navigation warning: {e}")
+            logging.error(f"Navigation warning (proceeding with dwell): {e}")
 
-        # Enforce exact 5-minute dwell time regardless of navigation state
+        # Enforce exact 5-minute dwell time regardless of minor page errors
         elapsed = time.time() - start_time
         remaining_sleep = max(0, DWELL_TIME - elapsed)
-        logging.info(f"Holding connection open for remaining {int(remaining_sleep)} seconds...")
+        logging.info(f"Holding connection active for remaining {int(remaining_sleep)} seconds...")
         time.sleep(remaining_sleep)
 
-        logging.info("5-minute stay complete. Closing browser.")
+        logging.info("5-minute stay complete. Closing session.")
         context.close()
         browser.close()
 
